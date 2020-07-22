@@ -5,10 +5,8 @@ dlib
 docopt
 env
 facemorpher
-flask
 imutils
 locator
-magenta
 matplotlib
 numpy
 pillow
@@ -16,7 +14,4 @@ pyamg
 scipy
 six
 stasm
-tensorflow
-tensorflow-hub
 utils
-werkzeug
