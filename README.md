@@ -4,6 +4,7 @@
 ```
 uMask_face_cmd.py --new_img=<new_image_path> --old_img=<old_image_path> --out_img=<out_image_path> --out_json=<out_json_path> --uuid=<UUID> --grpid=<GroupID>
 ```
+**_Please provide square sized images for now._**
 
 ### Options:
 ```
@@ -16,3 +17,8 @@ uMask_face_cmd.py --new_img=<new_image_path> --old_img=<old_image_path> --out_im
 --grpid=<grpid>             Group ID
 --version                   Show version
 ```
+
+### TODO:
+* Add code to crop images to square.
+* Add face to image ratio checker.
+* Add Perlin noise.
