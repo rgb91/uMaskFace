@@ -89,7 +89,8 @@ def average_face(imgpaths, width=500, height=500, background='black',
         dest_img = np.dstack((dest_img, mask))
 
         if background == 'average':
-            average_background = np.uint8(locator.average_points(images))
+            # average_background = np.uint8(locator.average_points(images))
+            average_background = perlin_background(images)
             dest_img = blender.overlay_image(dest_img, mask, average_background)
 
     print('Averaged {} images'.format(num_images))
@@ -149,4 +150,4 @@ if __name__ == '__main__':
     main()
     print('SUCCESS: Output face saved at', out_img_path)
 
-# python uMask_face_cmd.py --new_img "./morph_images/group04/new.jpg" --old_img "./morph_images/group04/old.jpg" --out_img "./morph_images/group04/out.jpg" --out_json "./morph_images/group04/out.json" --uuid 12345 --grpid g04
+# python uMask_face_cmd.py --new_img "./morph_images/group04/new.jpg" --old_img "./morph_images/group04/old.jpg" --out_img "./morph_images/group04/out.jpg" --out_json "./morph_images/group04/out.json" --uuid 12345 --grpid g04perlin

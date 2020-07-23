@@ -4,13 +4,15 @@ Created by Sanjay at 7/21/2020
 Feature: Enter feature name here
 Enter feature description here
 """
-import traceback
+import cv2
 import json
 import base64
-import cv2
+import locator
+import traceback
+import numpy as np
 from PIL import ExifTags
-from facemorpher import locator, aligner
 from imutils import face_utils
+from facemorpher import aligner
 
 
 def allowed_file(filename, allowed_extensions):
@@ -90,3 +92,49 @@ def get_landmarks(image_path, detector, predictor):
         shape = predictor(gray, rects[0])
         shape = face_utils.shape_to_np(shape)
         return shape, 'Successfully detected a face'
+
+
+def generate_perlin_noise_2d(shape, res, tileable=(False, False)):
+    def f(t):
+        return 6 * t ** 5 - 15 * t ** 4 + 10 * t ** 3
+
+    delta = (res[0] / shape[0], res[1] / shape[1])
+    d = (shape[0] // res[0], shape[1] // res[1])
+    grid = np.mgrid[0:res[0]:delta[0], 0:res[1]:delta[1]].transpose(1, 2, 0) % 1
+    # Gradients
+    angles = 2 * np.pi * np.random.rand(res[0] + 1, res[1] + 1)
+    gradients = np.dstack((np.cos(angles), np.sin(angles)))
+    if tileable[0]:
+        gradients[-1, :] = gradients[0, :]
+    if tileable[1]:
+        gradients[:, -1] = gradients[:, 0]
+    gradients = gradients.repeat(d[0], 0).repeat(d[1], 1)
+    g00 = gradients[:-d[0], :-d[1]]
+    g10 = gradients[d[0]:, :-d[1]]
+    g01 = gradients[:-d[0], d[1]:]
+    g11 = gradients[d[0]:, d[1]:]
+    # Ramps
+    n00 = np.sum(np.dstack((grid[:, :, 0], grid[:, :, 1])) * g00, 2)
+    n10 = np.sum(np.dstack((grid[:, :, 0] - 1, grid[:, :, 1])) * g10, 2)
+    n01 = np.sum(np.dstack((grid[:, :, 0], grid[:, :, 1] - 1)) * g01, 2)
+    n11 = np.sum(np.dstack((grid[:, :, 0] - 1, grid[:, :, 1] - 1)) * g11, 2)
+    # Interpolation
+    t = f(grid)
+    n0 = n00 * (1 - t[:, :, 0]) + t[:, :, 0] * n10
+    n1 = n01 * (1 - t[:, :, 0]) + t[:, :, 0] * n11
+    return np.sqrt(2) * ((1 - t[:, :, 1]) * n0 + t[:, :, 1] * n1)
+
+
+def perlin_background(images):
+    np.random.seed(0)
+    noise2d = generate_perlin_noise_2d((500, 500), (10, 10))
+    noise_img1 = np.repeat(noise2d[:, :, np.newaxis], 3, 2).ravel()
+    noise_img2 = np.ones(noise_img1.shape) - noise_img1
+    noise_img1 = (noise_img1 - np.min(noise_img1)) / np.ptp(noise_img1)
+    noise_img2 = (noise_img2 - np.min(noise_img2)) / np.ptp(noise_img2)
+    img1_weighted = np.multiply(images[0].ravel(), noise_img1)
+    img2_weighted = np.multiply(images[1].ravel(), noise_img2)
+    final_img_1d = np.sum(np.vstack((img1_weighted, img2_weighted)), axis=0)
+    final_img = np.uint8(final_img_1d.reshape((500, 500, 3)))
+    return final_img
+
