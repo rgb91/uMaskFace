@@ -26,7 +26,7 @@ import dlib
 import numpy as np
 from PIL import Image
 from docopt import docopt
-from facemorpher import blenderx
+from facemorpher import blender
 from facemorpher import plotter
 from facemorpher import warper
 from werkzeug.utils import secure_filename
@@ -128,13 +128,13 @@ def validate(n_img, o_img):
     if len(old_img_points) == 0:
         log_error('Face not detected')
         return False, 4, new_im, old_im
-    if len(new_img_points) > 1:
-        log_error('Multiple face detected')
-        return False, 5, new_im, old_im
+    # if len(new_img_points) > 1:
+    #     log_error('Multiple face detected')
+    #     return False, 5, new_im, old_im
 
     # Return value 6: Face too small
     face_detector = dlib.get_frontal_face_detector()
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray_image = cv2.cvtColor(new_im_cv2, cv2.COLOR_BGR2GRAY)
     detected_faces = face_detector(gray_image, 0)
     x = detected_faces[0]
     x1, y1, x2, y2 = x.left(), x.top(), x.right(), x.bottom()
@@ -170,11 +170,11 @@ def main(new_im, old_im):
     except Exception as e:
         log_error(e)
         return -1
-
+    landmarks, msg = get_landmarks(new_img_resized_path, detector, predictor)
     out_json = get_output_json(landmarks, uuid, grpid, msg)
     with open(out_json_path, 'w') as outfile:
         json.dump(out_json, outfile)
-
+        return 0
 
 if __name__ == '__main__':
     args = docopt(__doc__, version='uMask Face Command line 1.0')
