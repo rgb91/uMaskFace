@@ -20,7 +20,15 @@ uMask_face_cmd.py --new_img=<new_image_path> --old_img=<old_image_path> --out_im
 --version                   Show version
 ```
 
+### Return values:
+* `0` : Successfully generated Image
+* `1` : No image found in given path
+* `2` : Image is unreadable (size: 0 bytes)
+* `3` : Image is below minimum dimension (500x500)
+* `4` : Face not detected
+* `5` : Multiple face detected
+* `6` : Face too small
+* `-1` : Other exceptions
+
 ### TODO:
 * Add code to crop images to square.
-* Add face to image ratio checker.
-* Add Perlin noise.

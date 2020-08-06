@@ -4,6 +4,7 @@ Created by Sanjay at 7/21/2020
 Feature: Enter feature name here
 Enter feature description here
 """
+import sys
 import cv2
 import json
 import base64
@@ -12,8 +13,8 @@ import traceback
 import numpy as np
 from PIL import ExifTags
 from imutils import face_utils
-from facemorpher import aligner
-
+# from facemorpher import aligner
+import aligner
 
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
@@ -70,7 +71,7 @@ def load_image_points(path, size):
     points = locator.face_points(img)
 
     if len(points) == 0:
-        print('No face in %s' % path)
+        # print('No face in %s' % path)
         return None, None
     else:
         return aligner.resize_align(img, points, size)
@@ -80,7 +81,7 @@ def get_landmarks(image_path, detector, predictor):
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     rects = detector(gray, 0)
-    print(len(rects))
+    # print(len(rects))
     if len(rects) > 1:
         # print('More than one face detected')
         return None, 'More than one face detected'
@@ -127,7 +128,7 @@ def generate_perlin_noise_2d(shape, res, tileable=(False, False)):
 
 def perlin_background(images):
     np.random.seed(0)
-    noise2d = generate_perlin_noise_2d((500, 500), (10, 10))
+    noise2d = generate_perlin_noise_2d((500, 500), (5, 5))
     noise_img1 = np.repeat(noise2d[:, :, np.newaxis], 3, 2).ravel()
     noise_img2 = np.ones(noise_img1.shape) - noise_img1
     noise_img1 = (noise_img1 - np.min(noise_img1)) / np.ptp(noise_img1)
@@ -138,3 +139,9 @@ def perlin_background(images):
     final_img = np.uint8(final_img_1d.reshape((500, 500, 3)))
     return final_img
 
+def log_error(msg):
+    original_stdout = sys.stdout
+    with open('log.txt', 'a') as f:
+        sys.stdout = f  # Change the standard output to the file we created.
+        print(msg)  # write the exception to the log file
+        sys.stdout = original_stdout  # Reset the standard output to its original value
